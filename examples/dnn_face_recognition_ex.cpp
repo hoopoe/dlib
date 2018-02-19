@@ -26,6 +26,7 @@
 #include <dlib/image_io.h>
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <json.hpp>
+#include <experimental/filesystem>
 
 using namespace dlib;
 using namespace std;
@@ -79,6 +80,48 @@ std::vector<matrix<rgb_pixel>> jitter_image(
 
 // ----------------------------------------------------------------------------------------
 
+namespace filesys = std::experimental::filesystem;
+
+std::vector<std::string> getAllFilesInDir(const std::string &dirPath, const std::vector<std::string> acceptExt = {})
+{
+
+    // Create a vector of string
+    std::vector<std::string> listOfFiles;
+    try {
+        // Check if given path exists and points to a directory
+        if (filesys::exists(dirPath) && filesys::is_directory(dirPath))
+        {
+            // Create a Recursive Directory Iterator object and points to the starting of directory
+            filesys::recursive_directory_iterator iter(dirPath);
+
+            // Create a Recursive Directory Iterator object pointing to end.
+            filesys::recursive_directory_iterator end;
+
+            // Iterate till end
+            while (iter != end)
+            {
+                // Check if current entry is a directory and if exists in skip list
+                if (filesys::is_regular_file(iter->path()) && 
+                    (std::find(acceptExt.begin(), acceptExt.end(), iter->path().extension()) != acceptExt.end()))
+                {
+                    listOfFiles.push_back(iter->path().string());
+                }
+                error_code ec;
+                // Increment the iterator to point to next entry in recursive iteration
+                iter.increment(ec);
+                if (ec) {
+                    std::cerr << "Error While Accessing : " << iter->path().string() << " :: " << ec.message() << '\n';
+                }
+            }
+        }
+    }
+    catch (std::system_error & e)
+    {
+        std::cerr << "Exception :: " << e.what();
+    }
+    return listOfFiles;
+}
+
 int main(int argc, char** argv) try
 {
     if (argc != 2)
@@ -93,6 +136,9 @@ int main(int argc, char** argv) try
         cout << endl;
         return 1;
     }
+
+
+    
 
     json j;
     j["test"] = "test";
@@ -110,38 +156,35 @@ int main(int argc, char** argv) try
     anet_type net;
     deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
 
-    matrix<rgb_pixel> img;
-    load_image(img, argv[1]);
-    // Display the raw image on the screen
-    image_window win(img); 
 
-    // Run the face detector on the image of our action heroes, and for each face extract a
-    // copy that has been normalized to 150x150 pixels in size and appropriately rotated
-    // and centered.
+
+    
+    std::vector<std::string> listOfFiles = getAllFilesInDir(argv[1], { ".jpg", ".JPG", ".png", ".PNG" });
     std::vector<matrix<rgb_pixel>> faces;
-    for (auto face : detector(img))
-    {
-        auto shape = sp(img, face);
-        matrix<rgb_pixel> face_chip;
-        extract_image_chip(img, get_face_chip_details(shape,150,0.25), face_chip);
-        faces.push_back(move(face_chip));
-        // Also put some boxes on the faces so we can see that the detector is finding
-        // them.
-        win.add_overlay(face);
-    }
 
+    for (auto str : listOfFiles) {
+        std::cout << str << std::endl;
+        matrix<rgb_pixel> img;
+        load_image(img, str);
+        
+        for (auto face : detector(img))
+        {
+            auto shape = sp(img, face);
+            matrix<rgb_pixel> face_chip;
+            extract_image_chip(img, get_face_chip_details(shape, 150, 0.25), face_chip);
+            faces.push_back(move(face_chip));
+            // Also put some boxes on the faces so we can see that the detector is finding
+            // them.
+            //win.add_overlay(face);
+        }
+    }
     if (faces.size() == 0)
     {
         cout << "No faces found in image!" << endl;
         return 1;
     }
 
-    // This call asks the DNN to convert each face image in faces into a 128D vector.
-    // In this 128D vector space, images from the same person will be close to each other
-    // but vectors from different people will be far apart.  So we can use these vectors to
-    // identify if a pair of images are from the same person or from different people.  
-    std::vector<matrix<float,0,1>> face_descriptors = net(faces);
-
+    std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
 
     // In particular, one simple thing we can do is face clustering.  This next bit of code
     // creates a graph of connected faces and then uses the Chinese whispers graph clustering
