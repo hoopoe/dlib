@@ -123,30 +123,8 @@ std::vector<std::string> getAllFilesInDir(const std::string &dirPath, const std:
     return listOfFiles;
 }
 
-int main(int argc, char** argv) try
+void buildClusters(std::string sourceDir, std::string chippedDir)
 {
-    if (argc != 2)
-    {
-        cout << "Run this example by invoking it like this: " << endl;
-        cout << "   ./dnn_face_recognition_ex faces/bald_guys.jpg" << endl;
-        cout << endl;
-        cout << "You will also need to get the face landmarking model file as well as " << endl;
-        cout << "the face recognition model file.  Download and then decompress these files from: " << endl;
-        cout << "http://dlib.net/files/shape_predictor_5_face_landmarks.dat.bz2" << endl;
-        cout << "http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2" << endl;
-        cout << endl;
-        return 1;
-    }
-
-
-    
-
-    json j;
-    j["test"] = "test";
-    j["test1"] = "test1";
-    std::ofstream o("test.json");
-    o << std::setw(4) << j << std::endl;
-
     // The first thing we are going to do is load all our models.  First, since we need to
     // find faces in the image we will need a face detector:
     frontal_face_detector detector = get_frontal_face_detector();
@@ -157,17 +135,14 @@ int main(int argc, char** argv) try
     anet_type net;
     deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
 
-
-
-    
-    std::vector<std::string> listOfFiles = getAllFilesInDir(argv[1], { ".jpg", ".JPG", ".png", ".PNG" });
+    std::vector<std::string> listOfFiles = getAllFilesInDir(sourceDir, { ".jpg", ".JPG", ".png", ".PNG" });
     std::vector<matrix<rgb_pixel>> faces;
 
     for (auto str : listOfFiles) {
         std::cout << str << std::endl;
         matrix<rgb_pixel> img;
         load_image(img, str);
-        
+
         for (auto face : detector(img))
         {
             auto shape = sp(img, face);
@@ -177,12 +152,13 @@ int main(int argc, char** argv) try
             // Also put some boxes on the faces so we can see that the detector is finding
             // them.
             //win.add_overlay(face);
+            //std::string filename = chippedDir + "/" + cast_to_string(cluster_id) + ".png";
         }
     }
     if (faces.size() == 0)
     {
         cout << "No faces found in image!" << endl;
-        return 1;
+        //return 1;
     }
 
     std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
@@ -199,19 +175,19 @@ int main(int argc, char** argv) try
             // the distance between two face descriptors is less than 0.6, which is the
             // decision threshold the network was trained to use.  Although you can
             // certainly use any other threshold you find useful.
-            if (length(face_descriptors[i]-face_descriptors[j]) < 0.6)
-                edges.push_back(sample_pair(i,j));
+            if (length(face_descriptors[i] - face_descriptors[j]) < 0.6)
+                edges.push_back(sample_pair(i, j));
         }
     }
     std::vector<unsigned long> labels;
     const auto num_clusters = chinese_whispers(edges, labels);
     // This will correctly indicate that there are 4 people in the image.
-    cout << "number of people found in the image: "<< num_clusters << endl;
+    cout << "number of people found in the image: " << num_clusters << endl;
 
 
     // Now let's display the face clustering results on the screen.  You will see that it
     // correctly grouped all the faces. 
-    std::vector<image_window> win_clusters(num_clusters);
+    //std::vector<image_window> win_clusters(num_clusters);
     for (size_t cluster_id = 0; cluster_id < num_clusters; ++cluster_id)
     {
         std::vector<matrix<rgb_pixel>> temp;
@@ -221,13 +197,11 @@ int main(int argc, char** argv) try
                 temp.push_back(faces[j]);
         }
         //save_png(temp, cast_to_string(cluster_id));
-        save_png(tile_images(temp), cast_to_string(cluster_id) + ".png");
-        win_clusters[cluster_id].set_title("face cluster " + cast_to_string(cluster_id));
-        win_clusters[cluster_id].set_image(tile_images(temp));
+        std::string filename = chippedDir + "/" + cast_to_string(cluster_id) + ".png";
+        save_png(tile_images(temp), filename);
+        /*win_clusters[cluster_id].set_title("face cluster " + cast_to_string(cluster_id));
+        win_clusters[cluster_id].set_image(tile_images(temp));*/
     }
-
-
-
 
     // Finally, let's print one of the face descriptors to the screen.  
     cout << "face descriptor for one face: " << trans(face_descriptors[0]) << endl;
@@ -236,7 +210,7 @@ int main(int argc, char** argv) try
     // is used when creating face descriptors.  In particular, to get 99.38% on the LFW
     // benchmark you need to use the jitter_image() routine to compute the descriptors,
     // like so:
-    matrix<float,0,1> face_descriptor = mean(mat(net(jitter_image(faces[0]))));
+    matrix<float, 0, 1> face_descriptor = mean(mat(net(jitter_image(faces[0]))));
     cout << "jittered face descriptor for one face: " << trans(face_descriptor) << endl;
     // If you use the model without jittering, as we did when clustering the bald guys, it
     // gets an accuracy of 99.13% on the LFW benchmark.  So jittering makes the whole
@@ -246,10 +220,87 @@ int main(int argc, char** argv) try
     cout << "hit enter to terminate" << endl;
     cin.get();
 }
-catch (std::exception& e)
-{
-    cout << e.what() << endl;
+
+std::string remove_extension(const std::string& filename) {
+    size_t lastdot = filename.find_last_of(".");
+    if (lastdot == std::string::npos) return filename;
+    return filename.substr(0, lastdot);
 }
+
+void dumpClustersToJson(std::string chippedDir)
+{
+    // The first thing we are going to do is load all our models.  First, since we need to
+    // find faces in the image we will need a face detector:
+    frontal_face_detector detector = get_frontal_face_detector();
+    // We will also use a face landmarking model to align faces to a standard pose:  (see face_landmark_detection_ex.cpp for an introduction)
+    shape_predictor sp;
+    deserialize("shape_predictor_5_face_landmarks.dat") >> sp;
+    // And finally we load the DNN responsible for face recognition.
+    anet_type net;
+    deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
+
+    std::vector<std::string> listOfFiles = getAllFilesInDir(chippedDir, { ".jpg", ".JPG", ".png", ".PNG" });
+    std::vector<matrix<rgb_pixel>> faces;
+
+    json j;
+    for (auto filepath : listOfFiles) {
+        std::cout << filepath << std::endl;
+        matrix<rgb_pixel> img;
+        load_image(img, filepath);
+
+
+        for (auto face : detector(img))
+        {
+            auto shape = sp(img, face);
+            matrix<rgb_pixel> face_chip;
+            extract_image_chip(img, get_face_chip_details(shape, 150, 0.25), face_chip);
+            faces.push_back(move(face_chip));
+        }
+
+        std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
+        json cluster;
+        std::string filename = filesys::path(filepath).filename().string();
+        cluster["filename"] = filename;
+        cluster["name"] = remove_extension(filename);
+        for (size_t i = 0; i < face_descriptors.size(); ++i)
+        {
+            cluster[cast_to_string(i)] = face_descriptors[i];
+        }
+        j[filename] = cluster;
+    }
+    if (faces.size() == 0)
+    {
+        cout << "No faces found in image!" << endl;
+    }
+    std::ofstream o(chippedDir + "/" + "profiles.json");
+    o << std::setw(4) << j << std::endl;
+}
+
+int main(int argc, char** argv)
+{
+    if (argc == 2)
+    {
+        dumpClustersToJson(argv[1]);
+    }
+    else {
+        if (argc == 3)
+        {
+            buildClusters(argv[1], argv[2]);
+        }
+        else {
+            cout << "Run this example by invoking it like this: " << endl;
+            cout << "   ./dnn_face_recognition_ex faces/bald_guys.jpg" << endl;
+            cout << endl;
+            cout << "You will also need to get the face landmarking model file as well as " << endl;
+            cout << "the face recognition model file.  Download and then decompress these files from: " << endl;
+            cout << "http://dlib.net/files/shape_predictor_5_face_landmarks.dat.bz2" << endl;
+            cout << "http://dlib.net/files/dlib_face_recognition_resnet_model_v1.dat.bz2" << endl;
+            cout << endl;
+            return 1;
+        }
+    }
+}
+
 
 // ----------------------------------------------------------------------------------------
 
