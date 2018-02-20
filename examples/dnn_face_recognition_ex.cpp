@@ -27,6 +27,7 @@
 #include <dlib/image_processing/frontal_face_detector.h>
 #include <json.hpp>
 #include <experimental/filesystem>
+#include <dlib/image_saver/save_png.h>
 
 using namespace dlib;
 using namespace std;
@@ -219,6 +220,8 @@ int main(int argc, char** argv) try
             if (cluster_id == labels[j])
                 temp.push_back(faces[j]);
         }
+        //save_png(temp, cast_to_string(cluster_id));
+        save_png(tile_images(temp), cast_to_string(cluster_id) + ".png");
         win_clusters[cluster_id].set_title("face cluster " + cast_to_string(cluster_id));
         win_clusters[cluster_id].set_image(tile_images(temp));
     }
