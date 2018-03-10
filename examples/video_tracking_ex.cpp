@@ -18,9 +18,12 @@
 #include <dlib/image_io.h>
 #include <dlib/dir_nav.h>
 
+#include <opencv2/opencv.hpp>
+
 
 using namespace dlib;
 using namespace std;
+using namespace cv2;
 
 int main(int argc, char** argv) try
 {
