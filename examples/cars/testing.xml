@@ -1,0 +1,52 @@
+<?xml version='1.0' encoding='ISO-8859-1'?>
+<?xml-stylesheet type='text/xsl' href='image_metadata_stylesheet.xsl'?>
+<dataset>
+<name>imglab dataset</name>
+<comment>Created by imglab tool.</comment>
+<images>
+  <image file='E:\Work\dlib\examples\cars\1.png'>
+    <box top='26' left='185' width='81' height='60'/>
+    <box top='59' left='318' width='99' height='55'/>
+    <box top='91' left='378' width='161' height='73'/>
+    <box top='75' left='597' width='113' height='57'/>
+    <box top='152' left='624' width='117' height='77'/>
+    <box top='190' left='747' width='111' height='74'/>
+    <box top='22' left='74' width='67' height='42'/>
+    <box top='0' left='8' width='45' height='30'/>
+  </image>
+  <image file='E:\Work\dlib\examples\cars\2.png'>
+    <box top='3' left='150' width='52' height='39'/>
+    <box top='21' left='211' width='59' height='44'/>
+    <box top='62' left='519' width='120' height='67'/>
+    <box top='107' left='264' width='162' height='75'/>
+    <box top='119' left='615' width='101' height='65'/>
+    <box top='79' left='697' width='114' height='60'/>
+    <box top='22' left='918' width='78' height='51'/>
+    <box top='177' left='807' width='131' height='73'/>
+    <box top='404' left='-8' width='133' height='96'/>
+  </image>
+  <image file='E:\Work\dlib\examples\cars\4.png'>
+    <box top='40' left='134' width='39' height='44'/>
+    <box top='31' left='191' width='49' height='36'/>
+    <box top='19' left='241' width='51' height='41'/>
+    <box top='91' left='113' width='49' height='37'/>
+    <box top='86' left='167' width='52' height='26'/>
+    <box top='68' left='214' width='46' height='28'/>
+    <box top='66' left='173' width='42' height='26'/>
+  </image>
+  <image file='E:\Work\dlib\examples\cars\6.png'>
+    <box top='89' left='378' width='147' height='139'/>
+    <box top='276' left='2' width='129' height='90'/>
+    <box top='126' left='114' width='64' height='64'/>
+    <box top='154' left='193' width='67' height='60'/>
+    <box top='91' left='182' width='60' height='53'/>
+    <box top='64' left='217' width='72' height='41'/>
+    <box top='39' left='261' width='68' height='41'/>
+  </image>
+  <image file='E:\Work\dlib\examples\cars\8.png'>
+    <box top='24' left='9' width='71' height='68'/>
+    <box top='116' left='89' width='125' height='70'/>
+    <box top='244' left='278' width='152' height='78'/>
+  </image>
+</images>
+</dataset>
