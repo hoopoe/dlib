@@ -4,7 +4,7 @@
 <name>imglab dataset</name>
 <comment>Created by imglab tool.</comment>
 <images>
-  <image file='E:\Work\dlib\examples\cars\10.png'>
+  <image file='/home/vladimir/Work/dlib/examples/build/10.png'>
     <box top='39' left='138' width='97' height='47'/>
     <box top='42' left='314' width='72' height='60'/>
     <box top='119' left='239' width='64' height='69'/>
@@ -13,7 +13,7 @@
     <box top='192' left='242' width='91' height='53'/>
     <box top='227' left='130' width='227' height='165'/>
   </image>
-  <image file='E:\Work\dlib\examples\cars\2.png'>
+  <image file='/home/vladimir/Work/dlib/examples/build/2.png'>
     <box top='3' left='150' width='52' height='39'/>
     <box top='21' left='211' width='59' height='44'/>
     <box top='62' left='519' width='120' height='67'/>
@@ -24,7 +24,7 @@
     <box top='177' left='807' width='131' height='73'/>
     <box top='404' left='-8' width='133' height='96'/>
   </image>
-  <image file='E:\Work\dlib\examples\cars\4.png'>
+  <image file='/home/vladimir/Work/dlib/examples/build/4.png'>
     <box top='40' left='134' width='39' height='44'/>
     <box top='31' left='191' width='49' height='36'/>
     <box top='19' left='241' width='51' height='41'/>
@@ -33,7 +33,7 @@
     <box top='68' left='214' width='46' height='28'/>
     <box top='66' left='173' width='42' height='26'/>
   </image>
-  <image file='E:\Work\dlib\examples\cars\6.png'>
+  <image file='/home/vladimir/Work/dlib/examples/build/6.png'>
     <box top='89' left='378' width='147' height='139'/>
     <box top='276' left='2' width='129' height='90'/>
     <box top='126' left='114' width='64' height='64'/>
@@ -42,7 +42,7 @@
     <box top='64' left='217' width='72' height='41'/>
     <box top='39' left='261' width='68' height='41'/>
   </image>
-  <image file='E:\Work\dlib\examples\cars\8.png'>
+  <image file='/home/vladimir/Work/dlib/examples/build/8.png'>
     <box top='24' left='9' width='71' height='68'/>
     <box top='116' left='89' width='125' height='70'/>
     <box top='244' left='278' width='152' height='78'/>
