@@ -523,15 +523,18 @@ namespace dlib
         {
             const double lambda = get_lambda(); 
             impl::split_feature feat;
-            double accept_prob;
-            do 
+            const size_t max_iters = get_feature_pool_size()*get_feature_pool_size();
+            for (size_t i = 0; i < max_iters; ++i)
             {
-                feat.idx1   = rnd.get_random_32bit_number()%get_feature_pool_size();
-                feat.idx2   = rnd.get_random_32bit_number()%get_feature_pool_size();
+                feat.idx1   = rnd.get_integer(get_feature_pool_size());
+                feat.idx2   = rnd.get_integer(get_feature_pool_size());
+                while (feat.idx1 == feat.idx2)
+                    feat.idx2   = rnd.get_integer(get_feature_pool_size());
                 const double dist = length(pixel_coordinates[feat.idx1]-pixel_coordinates[feat.idx2]);
-                accept_prob = std::exp(-dist/lambda);
+                const double accept_prob = std::exp(-dist/lambda);
+                if (accept_prob > rnd.get_random_double())
+                    break;
             }
-            while(feat.idx1 == feat.idx2 || !(accept_prob > rnd.get_random_double()));
 
             feat.thresh = (rnd.get_random_double()*256 - 128)/2.0;
 
@@ -824,10 +827,12 @@ namespace dlib
                 {
                     // Remove any existing parts and replace them with the truth_box corners.
                     truth_box.parts.clear();
-                    truth_box.parts["top_left"]     = truth_box.rect.tl_corner();
-                    truth_box.parts["top_right"]    = truth_box.rect.tr_corner();
-                    truth_box.parts["bottom_left"]  = truth_box.rect.bl_corner();
-                    truth_box.parts["bottom_right"] = truth_box.rect.br_corner();
+                    auto b = truth_box.rect;
+                    truth_box.parts["left"]     = (b.tl_corner()+b.bl_corner())/2;
+                    truth_box.parts["right"]    = (b.tr_corner()+b.br_corner())/2;
+                    truth_box.parts["top"]      = (b.tl_corner()+b.tr_corner())/2;
+                    truth_box.parts["bottom"]   = (b.bl_corner()+b.br_corner())/2;
+                    truth_box.parts["middle"]   = center(b);
 
                     // Now replace the bounding truth_box with the detector's bounding truth_box.
                     truth_box.rect = det.first;
