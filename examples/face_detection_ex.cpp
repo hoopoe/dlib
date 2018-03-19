@@ -58,7 +58,9 @@ int main(int argc, char** argv)
         }
 
         frontal_face_detector detector = get_frontal_face_detector();
+#ifndef ANDROID
         image_window win;
+#endif
 
         // Loop over all the images provided on the command line.
         for (int i = 1; i < argc; ++i)
@@ -79,17 +81,25 @@ int main(int argc, char** argv)
 
             // Now tell the face detector to give us a list of bounding boxes
             // around all the faces it can find in the image.
+            auto start = std::chrono::high_resolution_clock::now();
+
             std::vector<rectangle> dets = detector(img);
+
+            auto finish = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed = finish - start;
+            std::cout << "Elapsed time: " << elapsed.count() << " s\n";
 
             cout << "Number of faces detected: " << dets.size() << endl;
             // Now we show the image on the screen and the face detections as
             // red overlay boxes.
+#ifndef ANDROID
             win.clear_overlay();
             win.set_image(img);
             win.add_overlay(dets, rgb_pixel(255,0,0));
 
             cout << "Hit enter to process the next image..." << endl;
             cin.get();
+#endif
         }
     }
     catch (exception& e)
