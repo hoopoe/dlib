@@ -87,8 +87,9 @@ int main(int argc, char** argv)
         shape_predictor sp;
         deserialize(argv[1]) >> sp;
 
-
+#ifndef ANDROID
         image_window win, win_faces;
+#endif
         // Loop over all the images provided on the command line.
         for (int i = 2; i < argc; ++i)
         {
@@ -119,6 +120,7 @@ int main(int argc, char** argv)
             }
 
             // Now let's view our face poses on the screen.
+#ifndef ANDROID
             win.clear_overlay();
             win.set_image(img);
             win.add_overlay(render_face_detections(shapes));
@@ -131,6 +133,7 @@ int main(int argc, char** argv)
 
             cout << "Hit enter to process the next image..." << endl;
             cin.get();
+#endif
         }
     }
     catch (exception& e)
