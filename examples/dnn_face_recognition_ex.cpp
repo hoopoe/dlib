@@ -175,8 +175,9 @@ void buildClusters(std::string sourceDir, std::string chippedDir)
             // the distance between two face descriptors is less than 0.6, which is the
             // decision threshold the network was trained to use.  Although you can
             // certainly use any other threshold you find useful.
-            if (length(face_descriptors[i] - face_descriptors[j]) < 0.6)
+            if (length(face_descriptors[i] - face_descriptors[j]) < 0.5) {
                 edges.push_back(sample_pair(i, j));
+            }
         }
     }
     std::vector<unsigned long> labels;
@@ -193,8 +194,9 @@ void buildClusters(std::string sourceDir, std::string chippedDir)
         std::vector<matrix<rgb_pixel>> temp;
         for (size_t j = 0; j < labels.size(); ++j)
         {
-            if (cluster_id == labels[j])
+            if (cluster_id == labels[j]) {
                 temp.push_back(faces[j]);
+            }
         }
         //save_png(temp, cast_to_string(cluster_id));
         std::string filename = chippedDir + "/" + cast_to_string(cluster_id) + ".png";
@@ -265,6 +267,7 @@ void dumpClustersToJson(std::string chippedDir)
         for (size_t i = 0; i < face_descriptors.size(); ++i)
         {
             cluster[cast_to_string(i)] = face_descriptors[i];
+            serialize("fvector_" + std::to_string(i)) << face_descriptors[i];
         }
         j[filename] = cluster;
     }
