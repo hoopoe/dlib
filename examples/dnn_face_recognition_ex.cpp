@@ -28,6 +28,7 @@
 #include <json.hpp>
 #include <experimental/filesystem>
 #include <dlib/image_saver/save_png.h>
+#include <dlib/svm/svm_multiclass_linear_trainer.h>
 
 using namespace dlib;
 using namespace std;
@@ -205,18 +206,21 @@ void buildClusters(std::string sourceDir, std::string chippedDir)
         win_clusters[cluster_id].set_image(tile_images(temp));*/
     }
 
-    // Finally, let's print one of the face descriptors to the screen.  
-    cout << "face descriptor for one face: " << trans(face_descriptors[0]) << endl;
+    //randomize_samples(samples, labels);
+    //cout << "cross validation: \n" << cross_validate_multiclass_trainer(trainer, samples, labels, 5) << endl;
 
-    // It should also be noted that face recognition accuracy can be improved if jittering
-    // is used when creating face descriptors.  In particular, to get 99.38% on the LFW
-    // benchmark you need to use the jitter_image() routine to compute the descriptors,
-    // like so:
-    matrix<float, 0, 1> face_descriptor = mean(mat(net(jitter_image(faces[0]))));
-    cout << "jittered face descriptor for one face: " << trans(face_descriptor) << endl;
-    // If you use the model without jittering, as we did when clustering the bald guys, it
-    // gets an accuracy of 99.13% on the LFW benchmark.  So jittering makes the whole
-    // procedure a little more accurate but makes face descriptor calculation slower.
+    //// Finally, let's print one of the face descriptors to the screen.  
+    //cout << "face descriptor for one face: " << trans(face_descriptors[0]) << endl;
+
+    //// It should also be noted that face recognition accuracy can be improved if jittering
+    //// is used when creating face descriptors.  In particular, to get 99.38% on the LFW
+    //// benchmark you need to use the jitter_image() routine to compute the descriptors,
+    //// like so:
+    //matrix<float, 0, 1> face_descriptor = mean(mat(net(jitter_image(faces[0]))));
+    //cout << "jittered face descriptor for one face: " << trans(face_descriptor) << endl;
+    //// If you use the model without jittering, as we did when clustering the bald guys, it
+    //// gets an accuracy of 99.13% on the LFW benchmark.  So jittering makes the whole
+    //// procedure a little more accurate but makes face descriptor calculation slower.
 
 
     cout << "hit enter to terminate" << endl;
@@ -247,9 +251,9 @@ void dumpClustersToJson(std::string chippedDir)
     json j;
     for (auto filepath : listOfFiles) {
         std::cout << filepath << std::endl;
+
         matrix<rgb_pixel> img;
         load_image(img, filepath);
-
 
         for (auto face : detector(img))
         {
@@ -279,11 +283,73 @@ void dumpClustersToJson(std::string chippedDir)
     o << std::setw(4) << j << std::endl;
 }
 
+void dumpClustersToSVM(std::string chippedDir)
+{
+    frontal_face_detector detector = get_frontal_face_detector();
+    shape_predictor sp;
+    deserialize("shape_predictor_5_face_landmarks.dat") >> sp;
+    anet_type net;
+    deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
+
+    std::vector<std::string> listOfFiles = getAllFilesInDir(chippedDir, { ".jpg", ".JPG", ".png", ".PNG" });
+    
+
+    typedef matrix<float, 0, 1> sample_type;
+    std::vector<sample_type> samples;
+    std::vector<string> labels;
+
+    for (auto filepath : listOfFiles) {
+        std::cout << filepath << std::endl;
+        std::string filename = filesys::path(filepath).filename().string();
+
+        matrix<rgb_pixel> img;
+        load_image(img, filepath);
+
+        std::vector<matrix<rgb_pixel>> faces;
+        for (auto face : detector(img))
+        {
+            auto shape = sp(img, face);
+            matrix<rgb_pixel> face_chip;
+            extract_image_chip(img, get_face_chip_details(shape, 150, 0.25), face_chip);
+            faces.push_back(move(face_chip));
+        }
+
+        std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
+        for (size_t i = 0; i < face_descriptors.size(); ++i)
+        {
+            labels.push_back(filename);
+            samples.push_back(face_descriptors[i]);
+        }
+
+        cout << "size: " << labels.size() << endl;
+    }
+    /*if (faces.size() == 0)
+    {
+        cout << "No faces found in image!" << endl;
+    }*/
+
+    typedef linear_kernel<sample_type> lin_kernel;
+
+    // Define the SVM multiclass trainer
+    typedef svm_multiclass_linear_trainer <lin_kernel, string> svm_mc_trainer;
+    svm_mc_trainer trainer;
+    trainer.set_c(1);
+
+    multiclass_linear_decision_function<lin_kernel, string> df = trainer.train(samples, labels);
+
+    for (int i = 0; i < labels.size(); i++) {
+        std::pair<string, float> res = df.predict(samples[i]);
+        cout << labels[i] << " : " << res.first << " : " << res.second << endl;
+    }
+}
+
+typedef matrix<double, 3, 1> sample_type;
 int main(int argc, char** argv)
 {
     if (argc == 2)
     {
-        dumpClustersToJson(argv[1]);
+        //dumpClustersToJson(argv[1]);
+        dumpClustersToSVM(argv[1]);
     }
     else {
         if (argc == 3)
@@ -302,6 +368,8 @@ int main(int argc, char** argv)
             return 1;
         }
     }
+
+    
 }
 
 
