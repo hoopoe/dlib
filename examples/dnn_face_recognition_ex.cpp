@@ -337,6 +337,18 @@ void dumpClustersToSVM(std::string chippedDir)
 
     multiclass_linear_decision_function<lin_kernel, string> df = trainer.train(samples, labels);
 
+    serialize("faces_linear.svm") << df;
+
+    cout << "First run: " << endl;
+    for (int i = 0; i < labels.size(); i++) {
+        std::pair<string, float> res = df.predict(samples[i]);
+        cout << labels[i] << " : " << res.first << " : " << res.second << endl;
+    }
+
+    multiclass_linear_decision_function<lin_kernel, string> newdf;
+    deserialize("faces_linear.svm") >> newdf;
+
+    cout << "Second run: " << endl;
     for (int i = 0; i < labels.size(); i++) {
         std::pair<string, float> res = df.predict(samples[i]);
         cout << labels[i] << " : " << res.first << " : " << res.second << endl;
