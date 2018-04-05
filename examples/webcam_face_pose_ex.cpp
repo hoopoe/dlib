@@ -105,8 +105,14 @@ int main()
             // while using cimg.
             cv_image<bgr_pixel> cimg(temp);
 
+            auto start = std::chrono::high_resolution_clock::now();
             // Detect faces 
             std::vector<rectangle> dets = detector(cimg);
+
+            auto finish = std::chrono::high_resolution_clock::now();
+            std::chrono::duration<double> elapsed = finish - start;
+
+            cout << "Elapsed: " << elapsed.count() << endl;
 
             std::vector<matrix<rgb_pixel>> faces;
            
