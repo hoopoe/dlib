@@ -88,7 +88,7 @@ int main()
         deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
 
         // Grab and process frames until the main window is closed by the user.
-        int fx = 0;
+        //int fx = 0;
         while(!win.is_closed())
         {
             // Grab a frame
@@ -112,7 +112,7 @@ int main()
             auto finish = std::chrono::high_resolution_clock::now();
             std::chrono::duration<double> elapsed = finish - start;
 
-            cout << "Elapsed: " << elapsed.count() << endl;
+            //cout << "Elapsed: " << elapsed.count() << " w: " << temp.cols << " h: " << temp.rows << endl;
 
             std::vector<matrix<rgb_pixel>> faces;
            
@@ -126,17 +126,21 @@ int main()
                 faces.push_back(move(face_chip));
             }
 
+            //cout << "Elapsed: " << elapsed.count() << " w: " << temp.cols << " h: " << temp.rows << endl;
             std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
-            for (size_t i = 0; i < face_descriptors.size(); ++i)
-            {
-                serialize("frame_" + std::to_string(fx) + "_fvector_" + std::to_string(i)) << face_descriptors[i];
-            }
+            cout << "Elapsed: " << elapsed.count() << " w: " << temp.cols << " h: " << temp.rows << " num vectors: " << face_descriptors .size() << endl;
+            
+           
+            //for (size_t i = 0; i < face_descriptors.size(); ++i)
+            //{
+            //    serialize("frame_" + std::to_string(fx) + "_fvector_" + std::to_string(i)) << face_descriptors[i];
+            //}
 
             // Display it all on the screen
             win.clear_overlay();
             win.set_image(cimg);
             win.add_overlay(render_face_detections(shapes));
-            fx++;
+            //fx++;
         }
     }
     catch(serialization_error& e)
