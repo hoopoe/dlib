@@ -355,6 +355,74 @@ void dumpClustersToSVM(std::string chippedDir)
     }
 }
 
+void performanceTest(std::string dir)
+{
+    frontal_face_detector detector = get_frontal_face_detector();
+    shape_predictor sp;
+    deserialize("shape_predictor_5_face_landmarks.dat") >> sp;
+    anet_type net;
+    deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
+
+    typedef matrix<float, 0, 1> sample_type;
+    typedef linear_kernel<sample_type> lin_kernel;
+    multiclass_linear_decision_function<lin_kernel, string> newdf;
+    deserialize("faces_linear.svm") >> newdf;
+
+    std::vector<std::string> listOfFiles = getAllFilesInDir(dir, { ".jpg", ".JPG", ".png", ".PNG" });
+
+    std::vector<sample_type> samples;
+    std::vector<string> labels;
+
+    for (auto filepath : listOfFiles) {
+        std::string filename = filesys::path(filepath).filename().string();
+        ofstream f;
+        f.open(filename + ".perf");
+
+        matrix<rgb_pixel> img;
+        load_image(img, filepath);
+
+        std::vector<matrix<rgb_pixel>> faces;
+
+        auto start = std::chrono::high_resolution_clock::now();
+        auto dets = detector(img);
+        auto finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> detection_elapsed = finish - start;
+        f << "detection_elapsed: " << detection_elapsed.count() << "\n";
+
+        start = std::chrono::high_resolution_clock::now();
+        for (auto face : dets)
+        {
+            auto shape = sp(img, face);
+            matrix<rgb_pixel> face_chip;
+            extract_image_chip(img, get_face_chip_details(shape, 150, 0.25), face_chip);
+            faces.push_back(move(face_chip));
+        }
+
+        finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> face_chip_elapsed = finish - start;
+        f << "face_chip_elapsed: " << face_chip_elapsed.count() << "\n";
+
+        start = std::chrono::high_resolution_clock::now();
+        std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
+        finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> feature_elapsed = finish - start;
+        f << "feature_elapsed: " << feature_elapsed.count() << "\n";
+        for (size_t i = 0; i < face_descriptors.size(); ++i)
+        {
+            labels.push_back(filename);
+            samples.push_back(face_descriptors[i]);
+        }
+
+        start = std::chrono::high_resolution_clock::now();
+        for (int i = 0; i < labels.size(); i++) {
+            std::pair<string, float> res = newdf.predict(samples[i]);
+        }
+        finish = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> svm_elapsed = finish - start;
+        f << "svm_elapsed: " << svm_elapsed.count() << "\n";
+        f.close();
+    }
+}
 
 void dumpFaceFeatureVector(std::string filepath)
 {
@@ -392,6 +460,7 @@ int main(int argc, char** argv)
     {
         //dumpClustersToJson(argv[1]);
         //dumpClustersToSVM(argv[1]);
+        //performanceTest(argv[1]);
         dumpFaceFeatureVector(argv[1]);
     }
     else {
