@@ -129,7 +129,10 @@ int main()
             std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
             for (size_t i = 0; i < face_descriptors.size(); ++i)
             {
-                serialize("frame_" + std::to_string(fx) + "_fvector_" + std::to_string(i)) << face_descriptors[i];
+                if (fx % 15 == 0)
+                {
+                    serialize("frame_" + std::to_string(fx) + "_fvector_" + std::to_string(i)) << face_descriptors[i];
+                }
             }
 
             // Display it all on the screen

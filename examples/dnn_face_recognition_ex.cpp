@@ -355,13 +355,44 @@ void dumpClustersToSVM(std::string chippedDir)
     }
 }
 
+
+void dumpFaceFeatureVector(std::string filepath)
+{
+    frontal_face_detector detector = get_frontal_face_detector();
+    shape_predictor sp;
+    deserialize("shape_predictor_5_face_landmarks.dat") >> sp;
+    anet_type net;
+    deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
+
+    std::string filename = filesys::path(filepath).filename().string();
+
+    matrix<rgb_pixel> img;
+    load_image(img, filepath);
+
+    std::vector<matrix<rgb_pixel>> faces;
+    for (auto face : detector(img))
+    {
+        auto shape = sp(img, face);
+        matrix<rgb_pixel> face_chip;
+        extract_image_chip(img, get_face_chip_details(shape, 150, 0.25), face_chip);
+        faces.push_back(move(face_chip));
+    }
+
+    std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
+    for (size_t i = 0; i < face_descriptors.size(); ++i)
+    {
+        serialize(filename + std::to_string(i) + ".vec") << face_descriptors[i];
+    }
+}
+
 typedef matrix<double, 3, 1> sample_type;
 int main(int argc, char** argv)
 {
     if (argc == 2)
     {
         //dumpClustersToJson(argv[1]);
-        dumpClustersToSVM(argv[1]);
+        //dumpClustersToSVM(argv[1]);
+        dumpFaceFeatureVector(argv[1]);
     }
     else {
         if (argc == 3)
