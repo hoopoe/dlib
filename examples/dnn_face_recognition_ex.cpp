@@ -434,6 +434,9 @@ void dumpFaceFeatureVector(std::string filepath)
 
     std::string filename = filesys::path(filepath).filename().string();
 
+    size_t lastindex = filename.find_last_of(".");
+    string pure_filename = filename.substr(0, lastindex);
+
     matrix<rgb_pixel> img;
     load_image(img, filepath);
 
@@ -449,7 +452,7 @@ void dumpFaceFeatureVector(std::string filepath)
     std::vector<matrix<float, 0, 1>> face_descriptors = net(faces);
     for (size_t i = 0; i < face_descriptors.size(); ++i)
     {
-        serialize(filename + std::to_string(i) + ".vec") << face_descriptors[i];
+        serialize(pure_filename + std::to_string(i) + ".vec") << face_descriptors[i];
     }
 }
 
