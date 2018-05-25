@@ -743,7 +743,7 @@ namespace dlib
                         }
                     }
 
-                    detector_window_details p((unsigned long)std::round(detector_width), (unsigned long)std::round(detector_height), label);
+                    detector_window_details p((unsigned long)::round(detector_width), (unsigned long)::round(detector_height), label);
                     detector_windows.push_back(p);
                 }
             }

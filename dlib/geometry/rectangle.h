@@ -739,13 +739,13 @@ namespace dlib
         {
             // In this case we will make the output rectangle a square with the requested
             // area.
-            unsigned long scale = std::round(std::sqrt(area));
+            unsigned long scale = ::round(std::sqrt(area));
             return centered_rect(rect, scale, scale);
         }
         else
         {
             double scale = std::sqrt(area/(double)rect.area());
-            return centered_rect(rect, (long)std::round(rect.width()*scale), (long)std::round(rect.height()*scale));
+            return centered_rect(rect, (long)::round(rect.width()*scale), (long)::round(rect.height()*scale));
         }
     }
 

@@ -1067,7 +1067,7 @@ namespace dlib
             );
 
         image_type temp;
-        set_image_size(temp, std::round(size_scale*num_rows(img)), std::round(size_scale*num_columns(img)));
+        set_image_size(temp, ::round(size_scale*num_rows(img)), ::round(size_scale*num_columns(img)));
         resize_image(img, temp);
         swap(img, temp);
     }

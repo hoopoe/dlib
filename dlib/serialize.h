@@ -164,6 +164,15 @@
 #include "byte_orderer.h"
 #include "float_details.h"
 
+namespace std {
+    template<typename T>
+    string to_string(T value) {
+        std::ostringstream os;
+        os << value;
+        return os.str();
+    }
+}
+
 namespace dlib
 {
 
