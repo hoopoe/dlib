@@ -160,6 +160,7 @@ void recognize(string facedb_path) {
         face_vector face_descriptor = face_descriptors.front();
 
         bool recognized = false;
+        int cx = 0;
         for (auto i : vectors) 
         {
             float dist = length(i - face_descriptor);
@@ -167,9 +168,10 @@ void recognize(string facedb_path) {
                 recognized = true;
                 break;
             }
+            cx++;
         }
         if (recognized) {
-            cout << "recognized " << endl;
+            cout << "recognized " << names[cx] << endl;
         }
         else {
             cout << "NOT recognized " << endl;
