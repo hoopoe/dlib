@@ -160,7 +160,7 @@ else()
    endif()
 endif()
 
-
+include_directories(../tools/json)
 
 #here we apply our macros 
 add_gui_example(3d_point_cloud_ex)

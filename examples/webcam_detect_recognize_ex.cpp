@@ -34,9 +34,12 @@
 #include <dlib/image_processing.h>
 #include <dlib/gui_widgets.h>
 #include <dlib/dnn.h>
+#include <unordered_map>
+#include <json.hpp>
 
 using namespace dlib;
 using namespace std;
+using json = nlohmann::json;
 
 // ----------------------------------------------------------------------------------------
 
@@ -79,15 +82,102 @@ using anet_type = loss_metric<fc_no_bias<128, avg_pool_everything<
     input_rgb_image_sized<150>
     >>>>>>>>>>>>;
 
+float FACE_RECOGNIZE_THRESH = 0.5; //todo: required to evaluate. 0.6 by default
 // ----------------------------------------------------------------------------------------
-void recognize(string facedb) {
-    cout << facedb << endl;
+
+//todo: remove dup code. TBD
+void recognize(string facedb_path) {
+    typedef matrix<float, 0, 1> face_vector;
+    std::ifstream ifs(facedb_path);
+    json facedb = json::parse(ifs);
+    std::vector<string> names;
+    std::vector<face_vector> vectors;
+    
+    for (auto &t : facedb["persons"]) {
+        string name = t["name"];
+        for (auto &j : t["vector"]) {
+            std::vector<float> tmp = j;
+            auto t1 = mat(tmp);
+            auto t2 = matrix<float, 0, 1>(t1);
+            names.push_back(name);
+            vectors.push_back(t2);
+            
+        }
+    }
+
+    cv::VideoCapture cap(0);
+    if (!cap.isOpened())
+    {
+        cerr << "Unable to connect to camera" << endl;
+        return;
+    }
+
+    image_window win;
+
+    typedef matrix<float, 0, 1> face_vector;
+    std::vector<std::vector<float>> facedb_tmp;
+
+    frontal_face_detector detector = get_frontal_face_detector();
+    shape_predictor sp;
+    deserialize("shape_predictor_5_face_landmarks.dat") >> sp;
+    anet_type net;
+    deserialize("dlib_face_recognition_resnet_model_v1.dat") >> net;
+
+    while (!win.is_closed())
+    {
+        cv::Mat temp;
+        if (!cap.read(temp))
+        {
+            break;
+        }
+        
+        cv_image<bgr_pixel> cimg(temp);
+
+        std::vector<rectangle> detected_faces = detector(cimg);
+
+        if (detected_faces.size() == 0) {
+            cout << "No faces found in image!" << endl;
+            continue;
+        }
+
+        if (detected_faces.size() > 1) {
+            cout << "Please train using only 1 face" << endl;
+        }
+
+        std::vector<matrix<rgb_pixel>> faces;
+        for (auto face : detected_faces)
+        {
+            auto shape = sp(cimg, face);
+            matrix<rgb_pixel> face_chip;
+            extract_image_chip(cimg, get_face_chip_details(shape, 150, 0.25), face_chip);
+            faces.push_back(move(face_chip));
+            win.clear_overlay();
+            win.set_image(cimg);
+            win.add_overlay(face);
+        }
+
+        std::vector<face_vector> face_descriptors = net(faces);
+        face_vector face_descriptor = face_descriptors.front();
+
+        bool recognized = false;
+        for (auto i : vectors) 
+        {
+            float dist = length(i - face_descriptor);
+            if (dist < FACE_RECOGNIZE_THRESH) {
+                recognized = true;
+                break;
+            }
+        }
+        if (recognized) {
+            cout << "recognized " << endl;
+        }
+        else {
+            cout << "NOT recognized " << endl;
+        }
+    }
 }
 
 void train(string name, string facedb_path) {
-        cout << name << " " << facedb_path << endl;
-        //return ;
-
         cv::VideoCapture cap(0);
         if (!cap.isOpened())
         {
@@ -98,7 +188,9 @@ void train(string name, string facedb_path) {
         image_window win;
 
         typedef matrix<float, 0, 1> face_vector;
-        std::vector<face_vector> facedb;
+        //unordered_map<string, std::vector<face_vector>> facedb;
+        //json facedb;
+        std::vector<std::vector<float>> facedb_tmp;
 
         // Load face detection and pose estimation models.
         frontal_face_detector detector = get_frontal_face_detector();
@@ -161,8 +253,23 @@ void train(string name, string facedb_path) {
             std::vector<face_vector> face_descriptors = net(faces);
             face_vector face_descriptor = face_descriptors.front();
 
+            std::vector<float> x(face_descriptor.begin(), face_descriptor.end());
+
+            facedb_tmp.push_back(x);
         }
+
+        json facedb;
+        facedb["persons"] = std::vector<json>();
+        json t;
+        t["name"] = name;
+        t["vector"] = facedb_tmp;
+
+        facedb["persons"].push_back(t);
+
+        std::ofstream o(facedb_path);
+        o << std::setw(4) << facedb << std::endl;
 }
+
 int main(int argc, char** argv)
 {
     if (argc != 2 && argc != 3)
