@@ -55,7 +55,8 @@ set(python_srcs
    src/shape_predictor.cpp
    src/correlation_tracker.cpp
    src/face_recognition.cpp
-   src/cnn_face_detector.cpp
+   src/symbol2_recognition.cpp
+   src/cnn_face_detector.cpp 
    src/global_optimization.cpp
    src/image_dataset_metadata.cpp
    src/numpy_returns.cpp

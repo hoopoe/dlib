@@ -27,6 +27,7 @@ void bind_object_detection(py::module& m);
 void bind_shape_predictors(py::module& m);
 void bind_correlation_tracker(py::module& m);
 void bind_face_recognition(py::module& m);
+void bind_symbol2_recognition(py::module& m);
 void bind_cnn_face_detection(py::module& m);
 void bind_global_optimization(py::module& m);
 void bind_numpy_returns(py::module& m);
@@ -104,6 +105,7 @@ PYBIND11_MODULE(dlib, m)
     bind_shape_predictors(m);
     bind_correlation_tracker(m);
     bind_face_recognition(m);
+    bind_symbol2_recognition(m);
     bind_cnn_face_detection(m);
     bind_global_optimization(m);
     bind_numpy_returns(m);
