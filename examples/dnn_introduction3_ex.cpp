@@ -71,25 +71,28 @@ void load_custom_dataset(
     fin1.read((char*)&num, sizeof(num));  bo.big_to_host(num);
     fin1.read((char*)&nr, sizeof(nr));  bo.big_to_host(nr);
     fin1.read((char*)&nc, sizeof(nc));  bo.big_to_host(nc);
-    if (magic != 2051 || num != 9 || nr != 28 || nc != 28)
+
+    if (magic != 2051|| nr != 28 || nc != 28)
         throw error("mndist dat files are corrupted.");
 
     fin2.read((char*)&magic, sizeof(magic));  bo.big_to_host(magic);
     fin2.read((char*)&num2, sizeof(num2));  bo.big_to_host(num2);
-    if (magic != 2049 || num2 != 9)
+    if (magic != 2049)
         throw error("mndist dat files are corrupted.");
 
     fin3.read((char*)&magic, sizeof(magic));  bo.big_to_host(magic);
     fin3.read((char*)&num3, sizeof(num3));  bo.big_to_host(num3);
     fin3.read((char*)&nr, sizeof(nr));  bo.big_to_host(nr);
     fin3.read((char*)&nc, sizeof(nc));  bo.big_to_host(nc);
-    if (magic != 2051 || num3 != 8 || nr != 28 || nc != 28)
+    if (magic != 2051 || nr != 28 || nc != 28)
         throw error("mndist dat files are corrupted.");
 
     fin4.read((char*)&magic, sizeof(magic));  bo.big_to_host(magic);
     fin4.read((char*)&num4, sizeof(num4));  bo.big_to_host(num4);
-    if (magic != 2049 || num4 != 8)
+    if (magic != 2049)
         throw error("mndist dat files are corrupted.");
+
+    cout << num << " " << num2 << " " << num3 << " " << num4 <<endl;
 
     if (!fin1) throw error("Unable to read train-images-idx3-ubyte");
     if (!fin2) throw error("Unable to read train-labels-idx1-ubyte");
@@ -97,10 +100,10 @@ void load_custom_dataset(
     if (!fin4) throw error("Unable to read t10k-labels-idx1-ubyte");
 
 
-    training_images.resize(9);
-    training_labels.resize(9);
-    testing_images.resize(8);
-    testing_labels.resize(8);
+    training_images.resize(num);
+    training_labels.resize(num2);
+    testing_images.resize(num3);
+    testing_labels.resize(num4);
 
     for (size_t i = 0; i < training_images.size(); ++i)
     {
@@ -180,7 +183,7 @@ int main(int argc, char** argv) try
     // network output is largest then the predicted digit is 0, if the last network output
     // is largest then the predicted digit is 9.  
     using net_type = loss_multiclass_log<
-                                fc<2,        
+                                fc<12,        
                                 relu<fc<84,   
                                 relu<fc<120,  
                                 max_pool<2,2,2,2,relu<con<16,5,5,1,1,
@@ -204,7 +207,7 @@ int main(int argc, char** argv) try
     trainer.set_learning_rate(0.01);
     trainer.set_min_learning_rate(0.00001);
     //trainer.set_mini_batch_size(128);
-    trainer.set_max_num_epochs(10);
+    trainer.set_max_num_epochs(100);
     trainer.be_verbose();
     // Since DNN training can take a long time, we can ask the trainer to save its state to
     // a file named "mnist_sync" every 20 seconds.  This way, if we kill this program and
