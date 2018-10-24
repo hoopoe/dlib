@@ -92,7 +92,7 @@ void load_custom_dataset(
     if (magic != 2049)
         throw error("mndist dat files are corrupted.");
 
-    cout << num << " " << num2 << " " << num3 << " " << num4 <<endl;
+    //cout << num << " " << num2 << " " << num3 << " " << num4 <<endl;
 
     if (!fin1) throw error("Unable to read train-images-idx3-ubyte");
     if (!fin2) throw error("Unable to read train-labels-idx1-ubyte");
