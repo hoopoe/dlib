@@ -26,7 +26,7 @@ public:
     symbol2_recognition_model_v1(const std::string& model_filename, const int num_outputs): m_num_outputs(num_outputs)
     {
         deserialize(model_filename) >> net;
-        net_type net2(num_fc_outputs(m_num_outputs));
+        //net_type net2(num_fc_outputs(m_num_outputs));
     }
 
     int detect (
@@ -36,9 +36,9 @@ public:
         matrix<unsigned char> image;
         if (is_image<unsigned char>(pyimage))
             assign_image(image, numpy_image<unsigned char>(pyimage));
-        std::vector<matrix<unsigned char>> training_images;        
+        std::vector<matrix<unsigned char>> training_images;
         training_images.push_back(image);
-        std::vector<unsigned long> predicted_labels = net2(training_images);
+        std::vector<unsigned long> predicted_labels = net(training_images);
         return predicted_labels.front();
     }
 
@@ -55,7 +55,7 @@ private:
 
     net_type net;
     const int m_num_outputs;
-    net_type net2;
+    //net_type net2;
 };
 
 
