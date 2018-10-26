@@ -183,7 +183,7 @@ int main(int argc, char** argv) try
     // network output is largest then the predicted digit is 0, if the last network output
     // is largest then the predicted digit is 9.  
     using net_type = loss_multiclass_log<
-                                fc<12,        
+                                fc<127,//ASCII codes
                                 relu<fc<84,   
                                 relu<fc<120,  
                                 max_pool<2,2,2,2,relu<con<16,5,5,1,1,
