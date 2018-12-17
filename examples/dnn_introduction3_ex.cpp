@@ -92,7 +92,7 @@ void load_custom_dataset(
     if (magic != 2049)
         throw error("mndist dat files are corrupted.");
 
-    cout << num << " " << num2 << " " << num3 << " " << num4 <<endl;
+    //cout << num << " " << num2 << " " << num3 << " " << num4 <<endl;
 
     if (!fin1) throw error("Unable to read train-images-idx3-ubyte");
     if (!fin2) throw error("Unable to read train-labels-idx1-ubyte");
@@ -183,7 +183,7 @@ int main(int argc, char** argv) try
     // network output is largest then the predicted digit is 0, if the last network output
     // is largest then the predicted digit is 9.  
     using net_type = loss_multiclass_log<
-                                fc<12,        
+                                fc<127,//ASCII codes
                                 relu<fc<84,   
                                 relu<fc<120,  
                                 max_pool<2,2,2,2,relu<con<16,5,5,1,1,

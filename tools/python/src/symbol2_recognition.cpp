@@ -23,9 +23,10 @@ class symbol2_recognition_model_v1
 
 public:
 
-    symbol2_recognition_model_v1(const std::string& model_filename)
+    symbol2_recognition_model_v1(const std::string& model_filename, const int num_outputs): m_num_outputs(num_outputs)
     {
         deserialize(model_filename) >> net;
+        //net_type net2(num_fc_outputs(m_num_outputs));
     }
 
     int detect (
@@ -35,9 +36,8 @@ public:
         matrix<unsigned char> image;
         if (is_image<unsigned char>(pyimage))
             assign_image(image, numpy_image<unsigned char>(pyimage));
-        std::vector<matrix<unsigned char>> training_images;        
+        std::vector<matrix<unsigned char>> training_images;
         training_images.push_back(image);
-
         std::vector<unsigned long> predicted_labels = net(training_images);
         return predicted_labels.front();
     }
@@ -45,7 +45,7 @@ public:
 private:
 
     using net_type = loss_multiclass_log<
-        fc<15,
+        fc<127,//ASCII codes
         relu<fc<84,
         relu<fc<120,
         max_pool<2,2,2,2,relu<con<16,5,5,1,1,
@@ -54,6 +54,8 @@ private:
         >>>>>>>>>>>>;
 
     net_type net;
+    const int m_num_outputs;
+    //net_type net2;
 };
 
 
@@ -61,7 +63,7 @@ void bind_symbol2_recognition(py::module &m)
 {
     {
     py::class_<symbol2_recognition_model_v1>(m, "symbol2_recognition_model_v1", "This object maps some symbols BigA BigC BigD BigE BigF BigG BigI BigM BigN BigO BigP BigR BigT BigV BigX into digits 0..14")
-        .def(py::init<std::string>())
+        .def(py::init<std::string, int>())
         .def(
             "__call__", 
             &symbol2_recognition_model_v1::detect, 
